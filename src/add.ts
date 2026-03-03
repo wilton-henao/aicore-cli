@@ -1650,59 +1650,76 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
-    // Include internal skills when a specific skill is explicitly requested
-    // (via --skill or @skill syntax)
-    const includeInternal = !!(options.skill && options.skill.length > 0);
+    // For the agents CLI with a specific subpath, skip SKILL.md discovery entirely —
+    // agents don't require SKILL.md. Install the directory at the given subpath directly.
+    const skills: Skill[] = [];
+    if (process.env.IS_AGENTS_CLI === '1' && parsed.subpath) {
+      const agentPath = join(skillsDir, parsed.subpath);
 
-    spinner.start(`Discovering ${SKILLS}...`);
-    const skills = await discoverSkills(skillsDir, parsed.subpath, {
-      includeInternal,
-      fullDepth: options.fullDepth,
-    });
-
-    if (skills.length === 0) {
-      if (process.env.IS_AGENTS_CLI === '1') {
-        // Agents don't require SKILL.md — install the specified agent directory as an agent.
-        // When a subpath is given (e.g. owner/repo/agents/my-agent), use that specific
-        // subdirectory instead of the whole repo root.
-        const agentPath = parsed.subpath ? join(skillsDir, parsed.subpath) : skillsDir;
-
-        if (parsed.subpath && !existsSync(agentPath)) {
-          spinner.stop(pc.red(`Agent path not found`));
-          p.outro(
-            pc.red(
-              `Path not found in repository: ${parsed.subpath}\n` +
-                `  Make sure the path exists in the repository and try again.`
-            )
-          );
-          await cleanup(tempDir);
-          process.exit(1);
-        }
-
-        const agentName =
-          (parsed.subpath?.split('/').pop() ?? source ?? basename(skillsDir))
-            .split('/')
-            .pop()!
-            .replace(/\.git$/, '') || basename(skillsDir);
-        skills.push({
-          name: agentName,
-          description: '',
-          path: agentPath,
-          rawContent: '',
-        });
-      } else {
-        spinner.stop(pc.red(`No ${SKILLS} found`));
+      if (!existsSync(agentPath)) {
+        spinner.stop(pc.red(`Agent path not found`));
         p.outro(
           pc.red(
-            `No valid ${SKILLS} found. The repository must contain SKILL.md files with a name and description in the frontmatter.`
+            `Path not found in repository: ${parsed.subpath}\n` +
+              `  Make sure the path exists in the repository and try again.`
           )
         );
         await cleanup(tempDir);
         process.exit(1);
       }
-    }
 
-    spinner.stop(`Found ${pc.green(skills.length)} ${skills.length > 1 ? SKILLS : SKILL}`);
+      const agentName =
+        parsed.subpath
+          .split('/')
+          .pop()!
+          .replace(/\.git$/, '') || basename(skillsDir);
+      skills.push({
+        name: agentName,
+        description: '',
+        path: agentPath,
+        rawContent: '',
+      });
+      spinner.stop(`Found ${pc.green(1)} agent`);
+    } else {
+      // Include internal skills when a specific skill is explicitly requested
+      // (via --skill or @skill syntax)
+      const includeInternal = !!(options.skill && options.skill.length > 0);
+
+      spinner.start(`Discovering ${SKILLS}...`);
+      const discovered = await discoverSkills(skillsDir, parsed.subpath, {
+        includeInternal,
+        fullDepth: options.fullDepth,
+      });
+      skills.push(...discovered);
+
+      if (skills.length === 0) {
+        if (process.env.IS_AGENTS_CLI === '1') {
+          // No subpath given and no SKILL.md found — install the whole repo as an agent.
+          const agentName =
+            (source ?? basename(skillsDir))
+              .split('/')
+              .pop()!
+              .replace(/\.git$/, '') || basename(skillsDir);
+          skills.push({
+            name: agentName,
+            description: '',
+            path: skillsDir,
+            rawContent: '',
+          });
+        } else {
+          spinner.stop(pc.red(`No ${SKILLS} found`));
+          p.outro(
+            pc.red(
+              `No valid ${SKILLS} found. The repository must contain SKILL.md files with a name and description in the frontmatter.`
+            )
+          );
+          await cleanup(tempDir);
+          process.exit(1);
+        }
+      }
+
+      spinner.stop(`Found ${pc.green(skills.length)} ${skills.length > 1 ? SKILLS : SKILL}`);
+    }
 
     if (options.list) {
       console.log();
