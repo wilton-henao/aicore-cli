@@ -4,6 +4,104 @@ import matter from 'gray-matter';
 import type { Skill } from './types.ts';
 import { getPluginSkillPaths, getPluginGroupings } from './plugin-manifest.ts';
 
+export interface AgentFile {
+  /** Name of the agent (from frontmatter or derived from filename) */
+  name: string;
+  /** Description from frontmatter, or empty string */
+  description: string;
+  /** Absolute path to the .md file */
+  filePath: string;
+}
+
+/**
+ * Parse an agent markdown file, extracting name and description from frontmatter.
+ * If no frontmatter name is found, the filename (without .md) is used as the name.
+ */
+export async function parseAgentMd(filePath: string): Promise<AgentFile | null> {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    let data: Record<string, any> = {};
+    try {
+      const parsed = matter(content);
+      data = parsed.data || {};
+    } catch {
+      // Ignore frontmatter parsing errors (e.g. invalid YAML), fallback to filename
+    }
+    const nameFromFile = basename(filePath, '.md');
+    const name = typeof data.name === 'string' && data.name ? data.name : nameFromFile;
+    const description = typeof data.description === 'string' ? data.description : '';
+    return { name, description, filePath };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Discover agent markdown files within a given directory.
+ *
+ * Agents in the agents CLI are single .md files. This function looks for:
+ *   1. .md files directly in the provided directory
+ *   2. .md files inside subdirectories named `agents/` or `aicores/`
+ *
+ * Files named README.md, CHANGELOG.md, LICENSE.md, CONTRIBUTING.md, and .md files
+ * that start with an uppercase letter (conventional documentation files) are skipped.
+ *
+ * Returns an array of AgentFile objects, one per discovered .md file.
+ */
+export async function discoverAgentFiles(dir: string): Promise<AgentFile[]> {
+  const agents: AgentFile[] = [];
+  const seenPaths = new Set<string>();
+
+  // Canonical documentation filenames to skip (case-insensitive)
+  const SKIP_FILES = new Set([
+    'readme.md',
+    'changelog.md',
+    'license.md',
+    'licence.md',
+    'contributing.md',
+    'code_of_conduct.md',
+    'security.md',
+    'authors.md',
+    'contributors.md',
+    'notice.md',
+    'history.md',
+  ]);
+
+  const isAgentFile = (filename: string): boolean => {
+    if (!filename.endsWith('.md')) return false;
+    if (SKIP_FILES.has(filename.toLowerCase())) return false;
+    return true;
+  };
+
+  const collectFromDir = async (searchDir: string): Promise<void> => {
+    try {
+      const entries = await readdir(searchDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        if (!isAgentFile(entry.name)) continue;
+        const filePath = resolve(join(searchDir, entry.name));
+        if (seenPaths.has(filePath)) continue;
+        seenPaths.add(filePath);
+        const agent = await parseAgentMd(filePath);
+        if (agent) agents.push(agent);
+      }
+    } catch {
+      // Directory doesn't exist or can't be read – silently skip
+    }
+  };
+
+  // 1. Root-level .md files
+  await collectFromDir(dir);
+
+  // 2. Common agent subdirectory conventions
+  const agentSubdirs = ['agents', 'aicores'];
+  for (const sub of agentSubdirs) {
+    await collectFromDir(join(dir, sub));
+  }
+
+  return agents;
+}
+
 const SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '__pycache__'];
 
 /**

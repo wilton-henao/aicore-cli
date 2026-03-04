@@ -282,21 +282,39 @@ export async function installSkillForAgent(
   }
 
   try {
+    const isFile = (await stat(skill.path)).isFile();
+    const finalCanonical =
+      isFile && !canonicalDir.endsWith('.md') ? `${canonicalDir}.md` : canonicalDir;
+    const finalAgentDir = isFile && !agentDir.endsWith('.md') ? `${agentDir}.md` : agentDir;
+
     // For copy mode, skip canonical directory and copy directly to agent location
     if (installMode === 'copy') {
-      await cleanAndCreateDirectory(agentDir);
-      await copyDirectory(skill.path, agentDir);
+      if (isFile) {
+        await mkdir(dirname(finalAgentDir), { recursive: true });
+        // remove existing file/symlink if present to avoid EEXIST on overwrite sometimes
+        await rm(finalAgentDir, { force: true }).catch(() => {});
+        await cp(skill.path, finalAgentDir);
+      } else {
+        await cleanAndCreateDirectory(finalAgentDir);
+        await copyDirectory(skill.path, finalAgentDir);
+      }
 
       return {
         success: true,
-        path: agentDir,
+        path: finalAgentDir,
         mode: 'copy',
       };
     }
 
     // Symlink mode: copy to canonical location and symlink to agent location
-    await cleanAndCreateDirectory(canonicalDir);
-    await copyDirectory(skill.path, canonicalDir);
+    if (isFile) {
+      await mkdir(dirname(finalCanonical), { recursive: true });
+      await rm(finalCanonical, { force: true }).catch(() => {});
+      await cp(skill.path, finalCanonical);
+    } else {
+      await cleanAndCreateDirectory(finalCanonical);
+      await copyDirectory(skill.path, finalCanonical);
+    }
 
     // For universal agents with global install, the skill is already in the canonical
     // ~/.agents/skills directory. Skip creating a symlink to the agent-specific global dir
@@ -304,23 +322,29 @@ export async function installSkillForAgent(
     if (isGlobal && isUniversalAgent(agentType)) {
       return {
         success: true,
-        path: canonicalDir,
-        canonicalPath: canonicalDir,
+        path: finalCanonical,
+        canonicalPath: finalCanonical,
         mode: 'symlink',
       };
     }
 
-    const symlinkCreated = await createSymlink(canonicalDir, agentDir);
+    const symlinkCreated = await createSymlink(finalCanonical, finalAgentDir);
 
     if (!symlinkCreated) {
       // Symlink failed, fall back to copy
-      await cleanAndCreateDirectory(agentDir);
-      await copyDirectory(skill.path, agentDir);
+      if (isFile) {
+        await mkdir(dirname(finalAgentDir), { recursive: true });
+        await rm(finalAgentDir, { force: true }).catch(() => {});
+        await cp(skill.path, finalAgentDir);
+      } else {
+        await cleanAndCreateDirectory(finalAgentDir);
+        await copyDirectory(skill.path, finalAgentDir);
+      }
 
       return {
         success: true,
-        path: agentDir,
-        canonicalPath: canonicalDir,
+        path: finalAgentDir,
+        canonicalPath: finalCanonical,
         mode: 'symlink',
         symlinkFailed: true,
       };
@@ -328,8 +352,8 @@ export async function installSkillForAgent(
 
     return {
       success: true,
-      path: agentDir,
-      canonicalPath: canonicalDir,
+      path: finalAgentDir,
+      canonicalPath: finalCanonical,
       mode: 'symlink',
     };
   } catch (error) {

@@ -29,7 +29,8 @@ async function isSourcePrivate(source: string): Promise<boolean | null> {
   return isRepoPrivate(ownerRepo.owner, ownerRepo.repo);
 }
 import { cloneRepo, cleanupTempDir, GitCloneError } from './git.ts';
-import { discoverSkills, getSkillDisplayName, filterSkills } from './skills.ts';
+import { discoverSkills, getSkillDisplayName, filterSkills, discoverAgentFiles } from './skills.ts';
+import type { AgentFile } from './skills.ts';
 import {
   installSkillForAgent,
   isSkillInstalled,
@@ -1651,13 +1652,14 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
     }
 
-    // For the agents CLI with a specific subpath, skip SKILL.md discovery entirely —
-    // agents don't require SKILL.md. Install the directory at the given subpath directly.
+    // For the agents CLI, skip SKILL.md discovery entirely —
+    // agents don't require SKILL.md. Discover agent .md files in the target folder.
     const skills: Skill[] = [];
-    if (process.env.IS_AGENTS_CLI === '1' && parsed.subpath) {
-      const agentPath = join(skillsDir, parsed.subpath);
+    if (process.env.IS_AGENTS_CLI === '1') {
+      // Resolve the base folder: use subpath when given, otherwise the repo root
+      const agentBaseDir = parsed.subpath ? join(skillsDir, parsed.subpath) : skillsDir;
 
-      if (!existsSync(agentPath)) {
+      if (parsed.subpath && !existsSync(agentBaseDir)) {
         spinner.stop(pc.red(`Agent path not found`));
         p.outro(
           pc.red(
@@ -1669,15 +1671,110 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
         process.exit(1);
       }
 
-      // Derive the name directly from the resolved path — the most reliable source
-      const agentName = basename(agentPath);
-      skills.push({
-        name: agentName,
-        description: '',
-        path: agentPath,
-        rawContent: '',
-      });
-      spinner.stop(`Found ${pc.green(1)} ${SKILL}`);
+      // Discover agent .md files inside the target folder
+      spinner.start(`Discovering ${SKILLS}...`);
+      const agentFiles = await discoverAgentFiles(agentBaseDir);
+
+      if (agentFiles.length === 0) {
+        // No agent .md files found — fall back to installing the whole directory as one agent
+        const agentName = parsed.subpath
+          ? basename(agentBaseDir)
+          : basename(parsed.url).replace(/\.git$/, '') || basename(skillsDir);
+        skills.push({
+          name: agentName,
+          description: '',
+          path: agentBaseDir,
+          rawContent: '',
+        });
+        spinner.stop(`Found ${pc.green(1)} ${SKILL}`);
+      } else if (agentFiles.length === 1) {
+        // Single agent found — use it directly
+        const af = agentFiles[0]!;
+        skills.push({
+          name: af.name,
+          description: af.description,
+          path: af.filePath,
+          rawContent: '',
+        });
+        spinner.stop(`Found ${pc.green(1)} ${SKILL}`);
+      } else {
+        // Multiple agents found — show an interactive selection
+        spinner.stop(`Found ${pc.green(agentFiles.length)} ${SKILLS}`);
+
+        let selectedAgentFiles: AgentFile[];
+
+        if (options.skill?.includes('*') || options.yes) {
+          // --agent '*' or -y: install all
+          selectedAgentFiles = agentFiles;
+          p.log.info(`Installing all ${agentFiles.length} ${SKILLS}`);
+        } else if (options.skill && options.skill.length > 0) {
+          // --agent <name>: filter by name
+          selectedAgentFiles = agentFiles.filter((af) =>
+            options.skill!.some(
+              (name) =>
+                af.name.toLowerCase() === name.toLowerCase() ||
+                basename(af.filePath, '.md').toLowerCase() === name.toLowerCase()
+            )
+          );
+          if (selectedAgentFiles.length === 0) {
+            p.log.error(`No matching ${SKILLS} found for: ${options.skill.join(', ')}`);
+            p.log.info(`Available ${SKILLS}:`);
+            for (const af of agentFiles) {
+              p.log.message(`  - ${af.name}`);
+            }
+            await cleanup(tempDir);
+            process.exit(1);
+          }
+        } else {
+          if (options.list) {
+            console.log();
+            p.log.step(pc.bold(`Available ${SkillsCap}`));
+            for (const af of agentFiles) {
+              p.log.message(`  ${pc.cyan(af.name)}`);
+              if (af.description) p.log.message(`    ${pc.dim(af.description)}`);
+            }
+            console.log();
+            p.outro(`Use --${SKILL} <name> to install specific ${SKILLS}`);
+            await cleanup(tempDir);
+            process.exit(0);
+          }
+
+          // Interactive multiselect
+          const agentChoices = agentFiles.map((af) => ({
+            value: af,
+            label: af.name,
+            hint: af.description
+              ? af.description.length > 60
+                ? af.description.slice(0, 57) + '...'
+                : af.description
+              : basename(af.filePath),
+          }));
+
+          const selected = await multiselect({
+            message: `Select ${SKILLS} to install`,
+            options: agentChoices,
+            required: true,
+          });
+
+          if (p.isCancel(selected)) {
+            p.cancel('Installation cancelled');
+            await cleanup(tempDir);
+            process.exit(0);
+          }
+
+          selectedAgentFiles = selected as AgentFile[];
+        }
+
+        // Convert selected AgentFile entries to Skill objects
+        for (const af of selectedAgentFiles) {
+          skills.push({
+            name: af.name,
+            description: af.description,
+            path: af.filePath,
+            rawContent: '',
+          });
+        }
+      }
     } else {
       // Include internal skills when a specific skill is explicitly requested
       // (via --skill or @skill syntax)
@@ -1691,27 +1788,14 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       skills.push(...discovered);
 
       if (skills.length === 0) {
-        if (process.env.IS_AGENTS_CLI === '1') {
-          // No subpath given and no SKILL.md found — install the whole repo as an agent.
-          // Derive name from the git URL (e.g. https://github.com/owner/repo.git → repo)
-          // which is more reliable than parsing the raw source string.
-          const agentName = basename(parsed.url).replace(/\.git$/, '') || basename(skillsDir);
-          skills.push({
-            name: agentName,
-            description: '',
-            path: skillsDir,
-            rawContent: '',
-          });
-        } else {
-          spinner.stop(pc.red(`No ${SKILLS} found`));
-          p.outro(
-            pc.red(
-              `No valid ${SKILLS} found. The repository must contain SKILL.md files with a name and description in the frontmatter.`
-            )
-          );
-          await cleanup(tempDir);
-          process.exit(1);
-        }
+        spinner.stop(pc.red(`No ${SKILLS} found`));
+        p.outro(
+          pc.red(
+            `No valid ${SKILLS} found. The repository must contain SKILL.md files with a name and description in the frontmatter.`
+          )
+        );
+        await cleanup(tempDir);
+        process.exit(1);
       }
 
       spinner.stop(`Found ${pc.green(skills.length)} ${skills.length > 1 ? SKILLS : SKILL}`);
@@ -1762,7 +1846,7 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       }
 
       console.log();
-      p.outro(`Use --skill <name> to install specific ${SKILLS}`);
+      p.outro(`Use --${SKILL} <name> to install specific ${SKILLS}`);
       await cleanup(tempDir);
       process.exit(0);
     }

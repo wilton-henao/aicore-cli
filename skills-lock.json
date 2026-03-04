@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "skills": {
+    "agents": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "69372752fb055fdad9932ba64f21de3068e64c0dcebd7ecc3928aff849250d97"
+    },
+    "unit-test-analyzing-code-coverage": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "232c8a28e4732013cd63425fa2091f42584a39b6875c1097153c7ec850a2036c"
+    },
+    "unit-test-authoring-test-plans": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "f1ba57af0117704f1084226430a5538a5658bd0960ee523a0361b43276309f0a"
+    },
+    "unit-test-creating-test-plan": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "9600a61abff27e4202c8981ef173bd5fa25944a1d755852f3847b10648151596"
+    },
+    "unit-test-generating-test-suite": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "a06325735f2dc382237835283f365906f921775c59352610c1524eca625be314"
+    },
+    "unit-test-generating-unit-tests": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "ce358cf85517cb76492391f83a7e47786c959929d59489084323a75f748b73c3"
+    },
+    "unit-test-reviewing-test-suite": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "b5650ba03a97e0f8b41ea1111ceb5c69c75836fe075b20fa8313fbf8a898b1b1"
+    },
+    "unit-test-running-coverage-analysis": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "1bdafe5e1e7ef6d705efea23f3c64ca7a089c7bd3dc20a3850a7ecd57dc0cfed"
+    },
+    "unit-test-shifting-left-from-requirements": {
+      "source": "wizeline/sdlc-agents",
+      "sourceType": "github",
+      "computedHash": "57fdc275baa4d51d99b3e310d7b79dbf7c8ae9c0b661ae87e78aad3bf8bb207f"
+    }
+  }
+}
