@@ -824,9 +824,18 @@ async function main(): Promise<void> {
       break;
     }
     case 'list':
-    case 'ls':
-      await runList(restArgs);
+    case 'ls': {
+      // If a source (URL or path) is provided, list available aicores from that source
+      const listSources = restArgs.filter((a) => !a.startsWith('-'));
+      if (listSources.length > 0) {
+        showLogo();
+        const { source: addSource, options: addOpts } = parseAddOptions([...restArgs, '--list']);
+        await runAdd(addSource, addOpts);
+      } else {
+        await runList(restArgs);
+      }
       break;
+    }
     case 'check':
       runCheck(restArgs);
       break;
@@ -844,8 +853,15 @@ async function main(): Promise<void> {
       break;
 
     default:
-      console.log(`Unknown command: ${command}`);
-      console.log(`Run ${BOLD}${binaryName} --help${RESET} for usage.`);
+      if (process.env.IS_AICORE_CLI) {
+        // For the aicore CLI, treat any unknown first arg as a source to install/list from
+        showLogo();
+        const { source: addSource, options: addOpts } = parseAddOptions(args);
+        await runAdd(addSource, addOpts);
+      } else {
+        console.log(`Unknown command: ${command}`);
+        console.log(`Run ${BOLD}${binaryName} --help${RESET} for usage.`);
+      }
   }
 }
 

@@ -72,7 +72,7 @@ npx aicore ./my-local-aicore
 ### Examples
 
 ```bash
-# List agents and skills in a package without installing
+# List aicores from a folder or URL without installing
 npx aicore wizeline/my-aicore --list
 
 # Install everything globally and skip all prompts

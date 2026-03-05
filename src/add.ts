@@ -29,7 +29,13 @@ async function isSourcePrivate(source: string): Promise<boolean | null> {
   return isRepoPrivate(ownerRepo.owner, ownerRepo.repo);
 }
 import { cloneRepo, cleanupTempDir, GitCloneError } from './git.ts';
-import { discoverSkills, getSkillDisplayName, filterSkills, discoverAgentFiles } from './skills.ts';
+import {
+  discoverSkills,
+  getSkillDisplayName,
+  filterSkills,
+  discoverAgentFiles,
+  discoverAicoresFromDir,
+} from './skills.ts';
 import type { AgentFile } from './skills.ts';
 import {
   installSkillForAgent,
@@ -1667,6 +1673,57 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
       const aiAgentsSubDir = join(baseDir, 'agents');
       const aiSkillsSubDir = join(baseDir, 'skills');
 
+      // --list: check if baseDir is a folder of multiple aicores and print a tree
+      if (options.list) {
+        spinner.start('Discovering aicores...');
+        const aicores = await discoverAicoresFromDir(baseDir);
+        if (aicores.length > 0) {
+          spinner.stop(`Found ${pc.green(aicores.length)} aicore(s)`);
+          console.log();
+          for (const aicore of aicores) {
+            const totalItems = aicore.agents.length + aicore.skills.length;
+            console.log(
+              pc.bold(pc.cyan(aicore.name)) +
+                pc.dim(` (${totalItems} item${totalItems !== 1 ? 's' : ''})`)
+            );
+            const sections: Array<{
+              label: string;
+              items: Array<{ name: string; description: string }>;
+            }> = [];
+            if (aicore.agents.length > 0) sections.push({ label: 'Agents', items: aicore.agents });
+            if (aicore.skills.length > 0)
+              sections.push({
+                label: 'Skills',
+                items: aicore.skills.map((s) => ({
+                  name: getSkillDisplayName(s),
+                  description: s.description,
+                })),
+              });
+            for (let si = 0; si < sections.length; si++) {
+              const section = sections[si]!;
+              const isLastSection = si === sections.length - 1;
+              const sectionPrefix = isLastSection ? '└── ' : '├── ';
+              const childIndent = isLastSection ? '    ' : '│   ';
+              console.log(
+                `${sectionPrefix}${pc.bold(section.label)} ${pc.dim(`(${section.items.length})`)}`
+              );
+              for (let ii = 0; ii < section.items.length; ii++) {
+                const item = section.items[ii]!;
+                const isLastItem = ii === section.items.length - 1;
+                const itemPrefix = isLastItem ? '└── ' : '├── ';
+                const desc = item.description ? pc.dim(` — ${item.description}`) : '';
+                console.log(`${childIndent}${itemPrefix}${pc.cyan(item.name)}${desc}`);
+              }
+            }
+            console.log();
+          }
+          p.outro(pc.dim('Run without --list to install'));
+          await cleanup(tempDir);
+          process.exit(0);
+        }
+        spinner.stop('');
+      }
+
       if (existsSync(aiAgentsSubDir) || existsSync(aiSkillsSubDir)) {
         spinner.start('Discovering aicore contents...');
 
@@ -1691,24 +1748,43 @@ export async function runAdd(args: string[], options: AddOptions = {}): Promise<
         }
 
         if (options.list) {
-          if (agentFiles.length > 0) {
-            console.log();
-            p.log.step(pc.bold('Agents'));
-            for (const af of agentFiles) {
-              p.log.message(`  ${pc.cyan(af.name)}`);
-              if (af.description) p.log.message(`    ${pc.dim(af.description)}`);
-            }
-          }
-          if (discoveredSkills.length > 0) {
-            console.log();
-            p.log.step(pc.bold('Skills'));
-            for (const s of discoveredSkills) {
-              p.log.message(`  ${pc.cyan(getSkillDisplayName(s))}`);
-              if (s.description) p.log.message(`    ${pc.dim(s.description)}`);
+          const name = parsed.subpath ? basename(parsed.subpath) : basename(parsed.url);
+          const totalItems = agentFiles.length + discoveredSkills.length;
+          console.log();
+          console.log(
+            pc.bold(pc.cyan(name)) + pc.dim(` (${totalItems} item${totalItems !== 1 ? 's' : ''})`)
+          );
+          const sections: Array<{
+            label: string;
+            items: Array<{ name: string; description: string }>;
+          }> = [];
+          if (agentFiles.length > 0) sections.push({ label: 'Agents', items: agentFiles });
+          if (discoveredSkills.length > 0)
+            sections.push({
+              label: 'Skills',
+              items: discoveredSkills.map((s) => ({
+                name: getSkillDisplayName(s),
+                description: s.description,
+              })),
+            });
+          for (let si = 0; si < sections.length; si++) {
+            const section = sections[si]!;
+            const isLastSection = si === sections.length - 1;
+            const sectionPrefix = isLastSection ? '└── ' : '├── ';
+            const childIndent = isLastSection ? '    ' : '│   ';
+            console.log(
+              `${sectionPrefix}${pc.bold(section.label)} ${pc.dim(`(${section.items.length})`)}`
+            );
+            for (let ii = 0; ii < section.items.length; ii++) {
+              const item = section.items[ii]!;
+              const isLastItem = ii === section.items.length - 1;
+              const itemPrefix = isLastItem ? '└── ' : '├── ';
+              const desc = item.description ? pc.dim(` — ${item.description}`) : '';
+              console.log(`${childIndent}${itemPrefix}${pc.cyan(item.name)}${desc}`);
             }
           }
           console.log();
-          p.outro('Run without --list to install');
+          p.outro(pc.dim('Run without --list to install'));
           await cleanup(tempDir);
           process.exit(0);
         }

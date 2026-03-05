@@ -102,6 +102,113 @@ export async function discoverAgentFiles(dir: string): Promise<AgentFile[]> {
   return agents;
 }
 
+export interface AicoreInfo {
+  /** Directory name of the aicore */
+  name: string;
+  /** Agents found in the aicore's agents/ subdirectory */
+  agents: AgentFile[];
+  /** Skills found in the aicore's skills/ subdirectory */
+  skills: Skill[];
+}
+
+/**
+ * Scan a directory for aicore sub-packages.
+ * Each immediate subdirectory that contains an `agents/` and/or `skills/` folder
+ * is treated as an aicore. Returns them sorted alphabetically by name.
+ */
+export async function discoverAicoresFromDir(baseDir: string): Promise<AicoreInfo[]> {
+  const aicores: AicoreInfo[] = [];
+
+  let entries: import('fs').Dirent[];
+  try {
+    entries = await readdir(baseDir, { withFileTypes: true });
+  } catch {
+    return aicores;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const dirName = entry.name;
+    if (['node_modules', '.git', 'dist', 'build', '__pycache__'].includes(dirName)) continue;
+
+    const aicoreDir = join(baseDir, dirName);
+    const agentsDir = join(aicoreDir, 'agents');
+    const skillsDir = join(aicoreDir, 'skills');
+
+    let hasAgents = false;
+    let hasSkills = false;
+    try {
+      const s = await stat(agentsDir);
+      hasAgents = s.isDirectory();
+    } catch {
+      /* not found */
+    }
+    try {
+      const s = await stat(skillsDir);
+      hasSkills = s.isDirectory();
+    } catch {
+      /* not found */
+    }
+
+    if (!hasAgents && !hasSkills) continue;
+
+    const agents = hasAgents ? await discoverAgentFiles(agentsDir) : [];
+    const skills = hasSkills ? await discoverSkillsBasic(skillsDir) : [];
+
+    aicores.push({ name: dirName, agents, skills });
+  }
+
+  return aicores.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Lightweight skill discovery for listing purposes: finds all SKILL.md files
+ * up to 3 levels deep and returns name + description.
+ */
+async function discoverSkillsBasic(dir: string): Promise<Skill[]> {
+  const skills: Skill[] = [];
+
+  const scan = async (currentDir: string, depth: number): Promise<void> => {
+    if (depth > 3) return;
+    let entries: import('fs').Dirent[];
+    try {
+      entries = await readdir(currentDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name === 'SKILL.md') {
+        const parsed = await parseSkillMdBasic(join(currentDir, 'SKILL.md'));
+        if (parsed) skills.push(parsed);
+      } else if (entry.isDirectory() && !['node_modules', '.git'].includes(entry.name)) {
+        await scan(join(currentDir, entry.name), depth + 1);
+      }
+    }
+  };
+
+  await scan(dir, 0);
+  return skills;
+}
+
+async function parseSkillMdBasic(filePath: string): Promise<Skill | null> {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    let data: Record<string, any> = {};
+    try {
+      const parsed = matter(content);
+      data = parsed.data || {};
+    } catch {
+      /* ignore */
+    }
+    const name =
+      typeof data.name === 'string' && data.name ? data.name : basename(join(filePath, '..'));
+    const description = typeof data.description === 'string' ? data.description : '';
+    return { name, description, path: filePath, rawContent: content };
+  } catch {
+    return null;
+  }
+}
+
 const SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '__pycache__'];
 
 /**

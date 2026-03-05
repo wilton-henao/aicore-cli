@@ -41,9 +41,29 @@ function getLicenseText(pkgPath: string): string {
 function main() {
   console.log('Generating ThirdPartyNoticeText.txt...');
 
-  // Get license info from license-checker
-  const output = execSync('npx license-checker --json', { encoding: 'utf-8' });
-  const allLicenses: Record<string, LicenseInfo> = JSON.parse(output);
+  let output: string;
+  try {
+    // Get license info from license-checker
+    // Use npx --yes to avoid interactive prompts in CI/scripts
+    output = execSync('npx --yes license-checker --json', {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'inherit'],
+    });
+  } catch (error) {
+    console.error(
+      'Error: Failed to run license-checker. Make sure you have internet access or license-checker is installed.'
+    );
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
+  let allLicenses: Record<string, LicenseInfo>;
+  try {
+    allLicenses = JSON.parse(output);
+  } catch (error) {
+    console.error('Error: Failed to parse license-checker output.');
+    process.exit(1);
+  }
 
   const lines: string[] = [
     '/*!----------------- Skills CLI ThirdPartyNotices -------------------------------------------------------',
