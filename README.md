@@ -1,4 +1,4 @@
-# Agents & Skills
+# AI Core CLI
 
 The CLI for the open agent ecosystem. Install and manage **agents** and **skills** for your favorite AI tools using `npx aicore`, `npx agents`, or `npx skills`.
 
