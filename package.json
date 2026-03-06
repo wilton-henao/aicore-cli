@@ -1,12 +1,13 @@
 {
   "name": "aicores",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "The open agent skills & subagents ecosystem",
   "type": "module",
   "bin": {
     "skills": "bin/cli.mjs",
     "agents": "bin/agents.mjs",
     "aicore": "bin/aicore.mjs",
+    "aicores": "bin/aicore.mjs",
     "add-skill": "bin/cli.mjs"
   },
   "files": [
