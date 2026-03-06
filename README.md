@@ -6,6 +6,57 @@ The CLI for the open agent ecosystem. Install and manage **agents** and **skills
 Supports **OpenCode**, **Claude Code**, **Codex**, **Cursor**, and [37 more](#available-agents).
 <!-- agent-list:end -->
 
+## Installation
+
+No installation required — use directly with `npx`:
+
+```bash
+# Install agents + skills from a GitHub repo
+npx aicores wizeline/my-aicore
+
+# Install from a full GitHub URL
+npx aicores https://github.com/wizeline/my-aicore
+
+# List available agents and skills without installing
+npx aicores wizeline/my-aicore --list
+
+# Install everything globally, skip all prompts
+npx aicores wizeline/my-aicore -g -y
+
+# Install only to Claude Code
+npx aicores wizeline/my-aicore -a claude-code
+
+# Install specific skills only
+npx aicores wizeline/my-aicore --skill frontend-design
+
+# Install agents separately
+npx aicores agents add wizeline/agent-skills
+
+# Install skills separately
+npx aicores skills add wizeline/agent-skills
+```
+
+Or install globally to use without `npx`:
+
+```bash
+# npm
+npm install -g aicores
+
+# pnpm
+pnpm add -g aicores
+
+# yarn
+yarn global add aicores
+```
+
+Once installed globally, use `aicore`, `agents`, or `skills` directly:
+
+```bash
+aicore wizeline/my-aicore
+agents add wizeline/agent-skills
+skills add wizeline/agent-skills
+```
+
 > [!TIP]
 > **Three interchangeable commands**: `aicore`, `agents`, and `skills` all work the same way. Use `npx aicore` to install a bundled package of agents + skills at once, or use `npx agents` / `npx skills` to install them separately.
 
