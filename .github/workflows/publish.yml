@@ -119,7 +119,7 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.version.outputs.bump != 'none'
-        run: pnpm publish --no-git-checks
+        run: pnpm publish --provenance --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
