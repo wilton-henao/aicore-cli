@@ -2,7 +2,7 @@ import * as readline from 'readline';
 import { Writable } from 'stream';
 import pc from 'picocolors';
 
-// Silent writable stream to prevent readline from echoing input
+// Silent writable stream to prevent readline from echoing input to the console
 const silentOutput = new Writable({
   write(_chunk, _encoding, callback) {
     callback();
