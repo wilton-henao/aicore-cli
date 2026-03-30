@@ -69,15 +69,28 @@ jobs:
 
   # The SLSA builder is a reusable workflow that must be at the top level.
   # It is triggered on tag pushes.
-  slsa-publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+  build:
     permissions:
-      id-token: write
-      contents: read
-      packages: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_nodejs_slsa3.yml@v2.0.0
+      id-token: write # For signing
+      contents: read # For repo checkout.
+      actions: read # For getting workflow run info.
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_nodejs_slsa3.yml@v2.1.0
     with:
-      registry-url: "https://npm.pkg.github.com"
       run-scripts: "build"
-    secrets:
-      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The SLSA builder is a reusable workflow that must be at the top level.
+  # It is triggered on tag pushes.
+  slsa-publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    id: publish
+    uses: slsa-framework/slsa-github-generator/actions/nodejs/publish@v2.1.0
+    with:
+      rekor-log-public: true
+      package-name: ${{ needs.build.outputs.package-name }}
+      package-download-name: ${{ needs.build.outputs.package-download-name }}
+      package-download-sha256: ${{ needs.build.outputs.package-download-sha256 }}
+      provenance-name: ${{ needs.build.outputs.provenance-name }}
+      provenance-download-name: ${{ needs.build.outputs.provenance-download-name }}
+      provenance-download-sha256: ${{ needs.build.outputs.provenance-download-sha256 }}
