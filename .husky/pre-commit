@@ -1,1 +1,1 @@
-npx lint-staged
+trufflehog git file://. && npx lint-staged
