@@ -5,6 +5,20 @@ on:
     types: [published, created, released]
 
 jobs:
+  run-on-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run a script when a release is created
+        run: |
+          echo "A release was created/published!"
+          echo "Release tag: ${{ github.event.release.tag_name }}"
+          echo "Release name: ${{ github.event.release.name }}"
+          echo "GH ref: ${{ github.ref }}"
+        shell: bash
   # The SLSA builder is a reusable workflow that must be at the top level.
   # It is triggered on tag pushes.
   build:
