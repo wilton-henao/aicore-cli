@@ -2,75 +2,13 @@ name: Publish
 
 on:
   push:
-    branches: [main]
-    tags:
-      - 'v*'
-    paths-ignore:
-      - '**/*.md'
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
+    release:
+      types: [published]
 
 jobs:
-  release:
-    # Only run on main branch pushes (not on tags or workflow_dispatch)
-    # This job handles versioning, changelog, and tagging.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    outputs:
-      new_tag: ${{ steps.tag.outputs.new_tag }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          # We need a token that can trigger other workflows when pushing tags
-          # If using GITHUB_TOKEN, the tag push won't trigger the SLSA job if it relies on 'on: push: tags'
-          # However, we can use a PAT or GitHub App token if needed.
-          # For now, we assume the user has configured this or is fine with manual trigger.
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: lts/*
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Reset generated files
-        run: |
-          git checkout -- ThirdPartyNoticeText.txt || true
-
-      - name: Run Release
-        id: run_release
-        run: |
-          pnpm release --ci
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   # The SLSA builder is a reusable workflow that must be at the top level.
   # It is triggered on tag pushes.
   build:
-    needs: [release]
     permissions:
       id-token: write # For signing
       contents: read # For repo checkout.
