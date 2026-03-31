@@ -71,7 +71,6 @@ jobs:
   # It is triggered on tag pushes.
   build:
     needs: [release]
-    runs-on: ubuntu-latest
     permissions:
       id-token: write # For signing
       contents: read # For repo checkout.
@@ -88,7 +87,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # Required for provenance
+      id-token: write # Required for provenance publish
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
