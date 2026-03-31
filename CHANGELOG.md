@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.18](https://github.com/wilton-henao/aicore-cli/compare/v1.0.17...v1.0.18) (2026-03-31)
+## [1.0.19](https://github.com/wilton-henao/aicore-cli/compare/v1.0.18...v1.0.19) (2026-03-31)
+
+## [v1.0.18](https://github.com/wilton-henao/aicore-cli/compare/v1.0.17...v1.0.18) (2026-03-31)
+
+- chore: update condition for SLSA workflow trigger [`#13`](https://github.com/wilton-henao/aicore-cli/pull/13)
+- chore: release v1.0.18 [`30f3956`](https://github.com/wilton-henao/aicore-cli/commit/30f3956a53ae866073ff6b11754c7f7ed10bd675)
 
 ## [v1.0.17](https://github.com/wilton-henao/aicore-cli/compare/v1.0.16...v1.0.17) (2026-03-31)
 
