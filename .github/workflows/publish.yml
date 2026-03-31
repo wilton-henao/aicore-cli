@@ -87,7 +87,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # Required for provenance
+      id-token: write # Required for provenance publish
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
