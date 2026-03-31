@@ -1,9 +1,8 @@
 name: Publish
 
 on:
-  push:
-    release:
-      types: [published]
+  release:
+    types: [published]
 
 jobs:
   # The SLSA builder is a reusable workflow that must be at the top level.
