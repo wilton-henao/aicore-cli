@@ -70,6 +70,8 @@ jobs:
   # The SLSA builder is a reusable workflow that must be at the top level.
   # It is triggered on tag pushes.
   build:
+    needs: [release]
+    runs-on: ubuntu-latest
     permissions:
       id-token: write # For signing
       contents: read # For repo checkout.
