@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.16](https://github.com/wilton-henao/aicore-cli/compare/v1.0.15...v1.0.16) (2026-03-31)
+## [1.0.17](https://github.com/wilton-henao/aicore-cli/compare/v1.0.16...v1.0.17) (2026-03-31)
+
+## [v1.0.16](https://github.com/wilton-henao/aicore-cli/compare/v1.0.15...v1.0.16) (2026-03-31)
+
+- chore: update release event types in publish.yml [`#11`](https://github.com/wilton-henao/aicore-cli/pull/11)
+- chore: release v1.0.16 [`d325466`](https://github.com/wilton-henao/aicore-cli/commit/d3254664f56df6cdd2341ffeb0004b8ba0965612)
 
 ## [v1.0.15](https://github.com/wilton-henao/aicore-cli/compare/v1.0.14...v1.0.15) (2026-03-31)
 
