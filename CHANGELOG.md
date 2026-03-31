@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.17](https://github.com/wilton-henao/aicore-cli/compare/v1.0.16...v1.0.17) (2026-03-31)
+## [1.0.18](https://github.com/wilton-henao/aicore-cli/compare/v1.0.17...v1.0.18) (2026-03-31)
+
+## [v1.0.17](https://github.com/wilton-henao/aicore-cli/compare/v1.0.16...v1.0.17) (2026-03-31)
+
+- chore: ddd release notification job to publish workflow [`#12`](https://github.com/wilton-henao/aicore-cli/pull/12)
+- chore: release v1.0.17 [`a31ac2f`](https://github.com/wilton-henao/aicore-cli/commit/a31ac2f2f3604669326287d75c75185350241e40)
 
 ## [v1.0.16](https://github.com/wilton-henao/aicore-cli/compare/v1.0.15...v1.0.16) (2026-03-31)
 
