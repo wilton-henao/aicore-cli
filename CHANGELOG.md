@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.14](https://github.com/wilton-henao/aicore-cli/compare/v1.0.13...v1.0.14) (2026-03-31)
+## [1.0.15](https://github.com/wilton-henao/aicore-cli/compare/v1.0.14...v1.0.15) (2026-03-31)
+
+## [v1.0.14](https://github.com/wilton-henao/aicore-cli/compare/v1.0.13...v1.0.14) (2026-03-31)
+
+- chore: add auto-changelog function and create release wf [`#9`](https://github.com/wilton-henao/aicore-cli/pull/9)
+- chore: release v1.0.14 [`350e03a`](https://github.com/wilton-henao/aicore-cli/commit/350e03a7eaef0977c0c2bbd6689b0406c189f9c5)
 
 ## [v1.0.13](https://github.com/wilton-henao/aicore-cli/compare/v1.0.12...v1.0.13) (2026-03-31)
 
