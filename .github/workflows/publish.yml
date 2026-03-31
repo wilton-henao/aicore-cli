@@ -87,7 +87,6 @@ jobs:
       contents: read
       packages: write
       id-token: write # Required for provenance
-    attestations: write # required to publish the attestation
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
