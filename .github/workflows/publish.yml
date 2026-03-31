@@ -78,19 +78,48 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_nodejs_slsa3.yml@v2.1.0
     with:
       run-scripts: "build"
+      rekor-log-public: true
 
-  # The SLSA builder is a reusable workflow that must be at the top level.
-  # It is triggered on tag pushes.
   slsa-publish:
     needs: [build]
     runs-on: ubuntu-latest
-    id: publish
-    uses: slsa-framework/slsa-github-generator/actions/nodejs/publish@v2.1.0
-    with:
-      rekor-log-public: true
-      package-name: ${{ needs.build.outputs.package-name }}
-      package-download-name: ${{ needs.build.outputs.package-download-name }}
-      package-download-sha256: ${{ needs.build.outputs.package-download-sha256 }}
-      provenance-name: ${{ needs.build.outputs.provenance-name }}
-      provenance-download-name: ${{ needs.build.outputs.provenance-download-name }}
-      provenance-download-sha256: ${{ needs.build.outputs.provenance-download-sha256 }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # Required for provenance
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '24'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: 'wilton-henao
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        name: Install pnpm
+        with:
+          version: 10
+          cache: true
+
+      - name: Download tarball
+        uses: slsa-framework/slsa-github-generator/actions/nodejs/secure-package-download@v2.1.0
+        with:
+          name: ${{ needs.build.outputs.package-download-name }}
+          path: ${{ needs.build.outputs.package-name }}
+          sha256: ${{ needs.build.outputs.package-download-sha256 }}
+
+      - name: Download provenance
+        uses: slsa-framework/slsa-github-generator/actions/nodejs/secure-attestations-download@v2.1.0
+        with:
+          name: ${{ needs.build.outputs.provenance-download-name }}
+          path: "attestations"
+          sha256: ${{ needs.build.outputs.provenance-download-sha256 }}
+
+      - name: Publish the package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TARBALL_PATH: "${{ needs.build.outputs.package-name }}"
+          PROVENANCE_PATH: "./attestations/${{ needs.build.outputs.provenance-name }}"
+        run: |
+          pnpm publish "${TARBALL_PATH}" --access=restricted --provenance
