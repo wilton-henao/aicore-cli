@@ -4,7 +4,7 @@
     "releaseName": "v${version}"
   },
   "git": {
-    "commitMessage": "chore: release v${version}",
+    "commitMessage": "chore: release v${version} [skip ci]",
     "tagName": "v${version}",
     "push": true,
     "changelog": "npx auto-changelog --stdout --commit-limit false --unreleased --template https://raw.githubusercontent.com/release-it/release-it/main/templates/changelog-compact.hbs"
