@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.22](https://github.com/wilton-henao/aicore-cli/compare/v1.0.21...v1.0.22) (2026-04-01)
+## [1.0.23](https://github.com/wilton-henao/aicore-cli/compare/v1.0.22...v1.0.23) (2026-04-01)
+
+## [v1.0.22](https://github.com/wilton-henao/aicore-cli/compare/v1.0.21...v1.0.22) (2026-04-01)
+
+- chore: use custom GH PAT in wfs [`#18`](https://github.com/wilton-henao/aicore-cli/pull/18)
+- chore: release v1.0.22 [`3c5986a`](https://github.com/wilton-henao/aicore-cli/commit/3c5986a3314f660b1305c6abc5f6e808287f974c)
 
 ## [v1.0.21](https://github.com/wilton-henao/aicore-cli/compare/v1.0.20...v1.0.21) (2026-04-01)
 
