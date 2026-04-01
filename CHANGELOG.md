@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.0.42](https://github.com/wilton-henao/aicore-cli/compare/v1.0.41...v1.0.42) (2026-04-01)
+## [1.0.43](https://github.com/wilton-henao/aicore-cli/compare/v1.0.42...v1.0.43) (2026-04-01)
+
+## [v1.0.42](https://github.com/wilton-henao/aicore-cli/compare/v1.0.41...v1.0.42) (2026-04-01)
+
+- chore: release v1.0.42 [`9d22498`](https://github.com/wilton-henao/aicore-cli/commit/9d22498254d95ce10dc129efe25be202c8940a2a)
 
 ## [v1.0.41](https://github.com/wilton-henao/aicore-cli/compare/v1.0.40...v1.0.41) (2026-04-01)
 
