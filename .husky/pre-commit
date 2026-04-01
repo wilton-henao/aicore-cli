@@ -1,1 +1,2 @@
-docker run --rm -v "$(pwd):/workdir" -i --rm trufflesecurity/trufflehog:latest git file:///workdir --since-commit HEAD --results=verified,unknown --fail && npx lint-staged
+# docker run --rm -v "$(pwd):/workdir" -i --rm trufflesecurity/trufflehog:latest git file:///workdir --since-commit HEAD --results=verified,unknown --fail && npx lint-staged
+CONTAINER_CLI=$(command -v podman || command -v docker) && if [ -n "$CONTAINER_CLI" ]; then $CONTAINER_CLI run --rm -v "$(pwd):/workdir" -i --rm trufflesecurity/trufflehog:latest git file:///workdir --since-commit HEAD --results=verified,unknown --fail; else echo "Neither podman nor docker found, cannot run trufflehog"; exit 1; fi && npx lint-staged
