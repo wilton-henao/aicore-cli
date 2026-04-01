@@ -37,7 +37,7 @@ jobs:
           # If using GITHUB_TOKEN, the tag push won't trigger the SLSA job if it relies on 'on: push: tags'
           # However, we can use a PAT or GitHub App token if needed.
           # For now, we assume the user has configured this or is fine with manual trigger.
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MY_PAT }}
 
       - name: Enable Corepack
         run: corepack enable
@@ -65,7 +65,7 @@ jobs:
         run: |
           pnpm release --ci
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
   
   run-on-release:
     runs-on: ubuntu-latest
@@ -89,7 +89,7 @@ jobs:
       contents: read # For repo checkout.
       actions: read # For getting workflow run info.
     needs: [release]
-    if: github.event.release.tag_name != '' && github.ref == 'refs/heads/main'
+    # if: github.event.release.tag_name != '' && github.ref == 'refs/heads/main'
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_nodejs_slsa3.yml@v2.1.0
     with:
       run-scripts: "build"
@@ -133,7 +133,6 @@ jobs:
 
       - name: Publish the package
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           TARBALL_PATH: "${{ needs.build.outputs.package-name }}"
           PROVENANCE_PATH: "./attestations/${{ needs.build.outputs.provenance-name }}"
         run: |
