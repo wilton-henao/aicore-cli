@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.35](https://github.com/wilton-henao/aicore-cli/compare/v1.0.34...v1.0.35) (2026-04-01)
+## [1.0.36](https://github.com/wilton-henao/aicore-cli/compare/v1.0.35...v1.0.36) (2026-04-01)
+
+## [v1.0.35](https://github.com/wilton-henao/aicore-cli/compare/v1.0.34...v1.0.35) (2026-04-01)
+
+- Comment out sections in publish.yml workflow [`#19`](https://github.com/wilton-henao/aicore-cli/pull/19)
+- chore: release v1.0.35 [`1006854`](https://github.com/wilton-henao/aicore-cli/commit/10068544cf1287350830736352437a4ad2d62975)
 
 ## [v1.0.34](https://github.com/wilton-henao/aicore-cli/compare/v1.0.33...v1.0.34) (2026-04-01)
 
