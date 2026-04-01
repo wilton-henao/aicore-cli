@@ -1,6 +1,6 @@
 {
   "name": "@wilton-henao/aicores",
-  "version": "1.0.66",
+  "version": "1.0.67",
   "description": "The open agent skills & subagents ecosystem",
   "type": "module",
   "bin": {
