@@ -1,6 +1,16 @@
 # Changelog
 
-## [1.0.20](https://github.com/wilton-henao/aicore-cli/compare/v1.0.19...v1.0.20) (2026-04-01)
+## [1.0.21](https://github.com/wilton-henao/aicore-cli/compare/v1.0.20...v1.0.21) (2026-04-01)
+
+### Bug Fixes
+
+* removed broken submodule ref ([#17](https://github.com/wilton-henao/aicore-cli/issues/17)) ([0b7841d](https://github.com/wilton-henao/aicore-cli/commit/0b7841dacc41e680709f5f51127c7dc3ab63048a))
+
+## [v1.0.20](https://github.com/wilton-henao/aicore-cli/compare/v1.0.19...v1.0.20) (2026-04-01)
+
+- Fix typo in 'needs' in release.yml [`#16`](https://github.com/wilton-henao/aicore-cli/pull/16)
+- chore: merge release and publish jobs into one wf" [`#15`](https://github.com/wilton-henao/aicore-cli/pull/15)
+- chore: release v1.0.20 [`521d5d6`](https://github.com/wilton-henao/aicore-cli/commit/521d5d69f60365ea589e5947cf0c0bca997595db)
 
 ## [v1.0.19](https://github.com/wilton-henao/aicore-cli/compare/v1.0.18...v1.0.19) (2026-03-31)
 
