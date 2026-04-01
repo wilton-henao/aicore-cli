@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.0.37](https://github.com/wilton-henao/aicore-cli/compare/v1.0.36...v1.0.37) (2026-04-01)
+## [1.0.38](https://github.com/wilton-henao/aicore-cli/compare/v1.0.37...v1.0.38) (2026-04-01)
+
+## [v1.0.37](https://github.com/wilton-henao/aicore-cli/compare/v1.0.36...v1.0.37) (2026-04-01)
+
+- chore: remove git submodule test-repro/temp-repo [`#20`](https://github.com/wilton-henao/aicore-cli/pull/20)
+- chore: release v1.0.37 [`1f9250e`](https://github.com/wilton-henao/aicore-cli/commit/1f9250ec82d4a89157891f4987159cd3daa96c46)
 
 ## [v1.0.36](https://github.com/wilton-henao/aicore-cli/compare/v1.0.35...v1.0.36) (2026-04-01)
 
