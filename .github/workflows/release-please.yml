@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'CHANGELOG.md'
+      - 'package.json'
+
+jobs:
+  vulnerability-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+          cache: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://npm.pkg.github.com'
+          scope: 'wilton-henao'
+      - name: Install and Build
+        run: pnpm install --frozen-lockfile && pnpm run build
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1' # Fails the build if vulnerabilities are found
+          severity: 'HIGH,CRITICAL'
+
+  release-please:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: vulnerability-scan
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          # this assumes that you have created a personal access token
+          # (PAT) and configured it as a GitHub action secret named
+          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
+          token: ${{ secrets.MY_PAT }}
+          config-file: release-please-config.json
