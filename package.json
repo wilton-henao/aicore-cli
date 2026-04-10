@@ -1,5 +1,5 @@
 {
-  "name": "aicores",
+  "name": "@wilton-henao/aicores",
   "version": "1.0.5",
   "description": "The open agent skills & subagents ecosystem",
   "type": "module",
@@ -84,11 +84,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wizeline/agents-skills.git"
+    "url": "git+https://github.com/wilton-henao/agents-skills.git"
   },
-  "homepage": "https://github.com/wizeline/agents-skills#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "homepage": "https://github.com/wilton-henao/agents-skills#readme",
   "bugs": {
-    "url": "https://github.com/wizeline/agents-skills/issues"
+    "url": "https://github.com/wilton-henao/agents-skills/issues"
   },
   "author": "",
   "license": "MIT",
@@ -103,7 +106,6 @@
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@release-it/conventional-changelog": "^10.0.6",
     "@types/bun": "latest",
     "@types/node": "^22.10.0",
     "esbuild": "^0.27.2",
@@ -112,7 +114,6 @@
     "lint-staged": "^16.2.7",
     "obuild": "^0.4.22",
     "prettier": "^3.8.1",
-    "release-it": "^19.2.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
